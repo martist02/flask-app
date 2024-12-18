@@ -9,6 +9,9 @@ from twilio.rest import Client  # ต้องติดตั้ง twilio ก�
 import geocoder
 
 app = Flask(__name__)
+@app.route("/")
+def home():
+    return render_template("index.html")
 app.config['SECRET_KEY'] = 'your_secret_key'
 
 login_manager = LoginManager()
