@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+    <html lang="th">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <!-- Meta Tags -->
+        <meta name="description" content="เว็บไซต์ช่วยติดตามตำแหน่งสำหรับผู้ป่วย">
+        <meta name="keywords" content="ติดตามผู้ป่วย, QR Code, ระบบช่วยเหลือ">
+        <meta name="robots" content="index, follow">
+
+        <title>ระบบช่วยเหลือผู้ป่วย</title>
+    </head>
+    <body>
+        <h1>ยินดีต้อนรับสู่ระบบช่วยเหลือผู้ป่วย</h1>
+        <p>นี่คือเว็บไซต์ที่ช่วยติดตามและช่วยเหลือผู้ป่วยโดยใช้ QR Code</p>
+    </body>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wristband Finder - User Location</title>
+
+    <!-- เชื่อมต่อ Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+        #map {
+            width: 100%;
+            height: 600px; /* กำหนดขนาดแผนที่ */
+        }
+        .container {
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+        }
+        .user-info {
+            margin: 20px;
+            padding: 15px;
+            background-color: #fff;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <h1>Wristband Finder</h1>
+
+    <div class="container">
+        <div class="user-info">
+            <h2>User Information</h2>
+            <p>ชื่อ: <strong>{{ user.name }}</strong></p>
+            <p>ชื่อญาติ: {{ user.relative_name }}</p>
+            <p>เบอร์โทรญาติ: {{ user.relative_phone }}</p>
+            <p>โรคประจำตัว: {{ user.medical_condition }}</p>
+            <img src="{{ user.profile_picture }}" alt="Profile Picture" width="150" height="150">
+        </div>
+    </div>
+
+    <div id="map"></div> <!-- แผนที่ของผู้ใช้ -->
+
+    <!-- เชื่อมต่อกับ Leaflet JS -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        // พิกัดที่ได้จาก Python/Flask (ส่งไปใน Template)
+        const userLat = {{ user.location.latitude }};
+        const userLng = {{ user.location.longitude }};
+
+        // สร้างแผนที่
+        var map = L.map('map').setView([userLat, userLng], 13);  // ตั้งค่า view สำหรับแผนที่
+
+        // เชื่อมต่อแผนที่ OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // สร้าง Marker สำหรับผู้ใช้
+        var marker = L.marker([userLat, userLng]).addTo(map);  
+        marker.bindPopup("<b>ตำแหน่งของผู้ใช้:</b><br>{{ user.name }}<br>{{ user.relative_phone }}").openPopup();  // แสดง popup เมื่อคลิกที่ marker
+    </script>
+</body>
+</html>

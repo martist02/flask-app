@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Details</title>
+    <style>
+        /* ตั้งค่าหน้าตาเว็บ */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        #map {
+            height: 90vh; /* แผนที่เต็มพื้นที่ */
+            width: 100%;
+        }
+        .container {
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        h2 {
+            margin-bottom: 0;
+        }
+    </style>
+    <!-- โหลด Google Maps JavaScript API -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap" async defer></script>
+</head>
+<body>
+    <!-- ส่วนข้อมูลผู้ใช้งาน -->
+    <div class="container">
+        <h2>User Information</h2>
+        <p>ชื่อ: <strong>{{ user.name }}</strong></p>
+        <p>ชื่อญาติ: {{ user.relative_name }}</p>
+        <p>เบอร์โทรญาติ: {{ user.relative_phone }}</p>
+        <p>โรคประจำตัว: {{ user.medical_condition }}</p>
+        <img src="{{ user.profile_picture }}" alt="Profile Picture" width="150" height="150">
+    </div>
+
+    <!-- ส่วนแผนที่ -->
+    <div id="map"></div>
+
+    <script>
+        function initMap() {
+            // Latitude และ Longitude จาก Python (Flask จะใส่ค่าให้)
+            const userLat = {{ user.location.latitude|default(13.736717) }};
+            const userLng = {{ user.location.longitude|default(100.523186) }};
+
+            // สร้างแผนที่ Google Maps
+            const map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 15,  // ระดับการซูม
+                center: { lat: userLat, lng: userLng }  // จุดกึ่งกลางแผนที่
+            });
+
+            // วาง Marker ลงบนแผนที่
+            new google.maps.Marker({
+                position: { lat: userLat, lng: userLng },
+                map: map,
+                title: "User's Location"
+            });
+        }
+    </script>
+</body>
+</html>

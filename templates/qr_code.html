@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code & User Information</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+        }
+        .user-info {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        img.profile {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+        }
+        .qr-code-container {
+            text-align: center;
+        }
+        .qr-code-container img {
+            margin: 20px;
+            width: 200px;
+            height: 200px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>User Information</h1>
+
+    <div class="user-info">
+        <h3>Name: {{ user.name }}</h3>
+        <p>Relative Name: {{ user.relative_name }}</p>
+        <p>Relative Phone: {{ user.relative_phone }}</p>
+        <p>Medical Condition: {{ user.medical_condition }}</p>
+        <img class="profile" src="{{ user.get('profile_picture', 'default-profile.jpg') }}" alt="Profile Picture">
+    </div>
+
+    <div class="qr-code-container">
+        <h2>Scan the QR Code</h2>
+        <img src="data:image/png;base64,{{ qr_code_img }}" alt="QR Code">
+    </div>
+
+</body>
+</html>

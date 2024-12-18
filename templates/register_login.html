@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login/Register</title>
+</head>
+<body>
+    <h1>Login/Register</h1>
+
+    <!-- แสดงข้อความที่ส่งจาก flash -->
+<!-- แสดงข้อความที่ส่งจาก flash -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <ul>
+                {% for category, message in messages %}
+                    <li class="{{ category }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+
+    <!-- ฟอร์มสำหรับการลงทะเบียน -->
+    <h2>Register</h2>
+    <form method="POST">
+        <input type="text" name="name" placeholder="Full Name" required><br><br>
+        <input type="email" name="email" placeholder="Email" required><br><br>
+        <input type="password" name="password" placeholder="Password" required><br><br>
+
+        <!-- Relative Name and Phone -->
+        <input type="text" name="relative_name" placeholder="Relative Name" required><br><br>
+        <input type="text" name="relative_phone" placeholder="Relative Phone" required><br><br>
+
+        <input type="text" name="medical_condition" placeholder="Medical Condition"><br><br>
+        <input type="file" name="profile_picture"><br><br>
+
+        <input type="submit" name="action" value="register">
+    </form>
+
+    <!-- ฟอร์มสำหรับการเข้าสู่ระบบ -->
+    <h2>Login</h2>
+    <form method="POST">
+        <input type="email" name="email" placeholder="Email" required><br><br>
+        <input type="password" name="password" placeholder="Password" required><br><br>
+        <input type="submit" name="action" value="login">
+    </form>
+
+</body>
+</html>

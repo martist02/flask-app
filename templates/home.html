@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login & Register</title>
+</head>
+<body>
+    <h1>Welcome to the System</h1>
+
+    <!-- ฟอร์ม Login -->
+    <h2>Login</h2>
+    <form method="POST">
+        <input type="text" name="username" placeholder="Email" required>
+        <input type="password" name="password" placeholder="Password" required>
+        <button type="submit" name="login">Login</button>
+    </form>
+
+    <!-- ฟอร์ม Register -->
+    <h2>Register</h2>
+    <form method="POST" enctype="multipart/form-data">
+        <input type="text" name="name" placeholder="ชื่อ-นามสกุล" required><br>
+        <input type="text" name="relative_name" placeholder="ชื่อนามสกุลญาติ" required><br>
+        <input type="text" name="relative_phone" placeholder="เบอร์โทรญาติ" required><br>
+        <input type="text" name="medical_condition" placeholder="โรคประจำตัว"><br>
+        <label>Profile Picture:</label>
+        <input type="file" name="profile_picture"><br>
+        <button type="submit" name="register">Register</button>
+    </form>
+
+    {% if error %}
+    <p style="color:red;">{{ error }}</p>
+    {% endif %}
+</body>
+</html>
