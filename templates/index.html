@@ -1,25 +1,18 @@
 <!DOCTYPE html>
-    <html lang="th">
-    <head>
+<html lang="th">
+<head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-        <!-- Meta Tags -->
-        <meta name="description" content="เว็บไซต์ช่วยติดตามตำแหน่งสำหรับผู้ป่วย">
-        <meta name="keywords" content="ติดตามผู้ป่วย, QR Code, ระบบช่วยเหลือ">
-        <meta name="robots" content="index, follow">
-
-        <title>ระบบช่วยเหลือผู้ป่วย</title>
+        <title>Your Stylish Website</title>
+        <link rel="stylesheet" href="styles.css"> <!-- ใส่ลิงค์ไปที่ไฟล์ CSS -->
     </head>
-    <body>
-        <h1>ยินดีต้อนรับสู่ระบบช่วยเหลือผู้ป่วย</h1>
-        <p>นี่คือเว็บไซต์ที่ช่วยติดตามและช่วยเหลือผู้ป่วยโดยใช้ QR Code</p>
-    </body>
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wristband Finder - User Location</title>
+    <!-- Meta Tags -->
+    <meta name="description" content="เว็บไซต์ช่วยติดตามตำแหน่งสำหรับผู้ป่วย">
+    <meta name="keywords" content="ติดตามผู้ป่วย, QR Code, ระบบช่วยเหลือ">
+    <meta name="robots" content="index, follow">
+
+    <title>ระบบช่วยเหลือผู้ป่วย</title>
 
     <!-- เชื่อมต่อ Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
@@ -50,11 +43,14 @@
     </style>
 </head>
 <body>
-    <h1>Wristband Finder</h1>
+    <h1>ระบบช่วยเหลือผู้ป่วย</h1>
 
     <div class="container">
+        <p>นี่คือเว็บไซต์ที่ช่วยติดตามและช่วยเหลือผู้ป่วยโดยใช้ QR Code</p>
+        
+        <!-- ข้อมูลผู้ใช้ -->
         <div class="user-info">
-            <h2>User Information</h2>
+            <h2>ข้อมูลผู้ใช้</h2>
             <p>ชื่อ: <strong>{{ user.name }}</strong></p>
             <p>ชื่อญาติ: {{ user.relative_name }}</p>
             <p>เบอร์โทรญาติ: {{ user.relative_phone }}</p>
@@ -63,7 +59,7 @@
         </div>
     </div>
 
-    <div id="map"></div> <!-- แผนที่ของผู้ใช้ -->
+    <div id="map"></div> <!-- แผนที่ตำแหน่งผู้ใช้ -->
 
     <!-- เชื่อมต่อกับ Leaflet JS -->
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>

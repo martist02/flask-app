@@ -34,7 +34,7 @@
         <p>ชื่อญาติ: {{ user.relative_name }}</p>
         <p>เบอร์โทรญาติ: {{ user.relative_phone }}</p>
         <p>โรคประจำตัว: {{ user.medical_condition }}</p>
-        <img src="{{ user.profile_picture }}" alt="Profile Picture" width="150" height="150">
+        <img src="{{ user['profile_picture'] }}" alt="Profile Picture" width="150" height="150">
     </div>
 
     <!-- ส่วนแผนที่ -->
