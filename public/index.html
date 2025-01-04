@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="เว็บไซต์ช่วยติดตามตำแหน่งสำหรับผู้ป่วย">
+    <meta name="keywords" content="ติดตามผู้ป่วย, QR Code, ระบบช่วยเหลือ">
+    <meta name="robots" content="index, follow">
+    <title>ระบบช่วยเหลือผู้ป่วย</title>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="./styles.css">
+    <style>
+        /* เพิ่มความสวยงามเพิ่มเติม */
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to bottom right, #e6e6fa, #ffffff);
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        header {
+            text-align: center;
+            padding: 20px 0;
+            background-color: #6a5acd;
+            color: #fff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            margin: 0;
+            font-size: 2em;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .user-info {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-radius: 8px;
+        }
+        .user-info img {
+            display: block;
+            margin: 0 auto;
+            border-radius: 50%;
+            border: 2px solid #6a5acd;
+        }
+        #map {
+            width: 100%;
+            height: 400px;
+            margin-top: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        footer {
+            text-align: center;
+            padding: 15px 0;
+            background-color: #6a5acd;
+            color: #fff;
+            margin-top: 20px;
+        }
+        footer a {
+            color: #fff;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <h1>ระบบช่วยเหลือผู้ป่วย</h1>
+    </header>
+
+    <!-- Container -->
+    <div class="container">
+        <p>นี่คือเว็บไซต์ที่ช่วยติดตามและช่วยเหลือผู้ป่วยโดยใช้ QR Code</p>
+        
+        <!-- ข้อมูลผู้ใช้ -->
+        <div class="user-info">
+            <h2>ข้อมูลผู้ใช้</h2>
+            <p>ชื่อ: <strong>{{ user.name }}</strong></p>
+            <p>ชื่อญาติ: {{ user.relative_name }}</p>
+            <p>เบอร์โทรญาติ: {{ user.relative_phone }}</p>
+            <p>โรคประจำตัว: {{ user.medical_condition }}</p>
+            <img src="{{ user.profile_picture }}" alt="Profile Picture" width="150">
+        </div>
+    </div>
+
+    <!-- แผนที่ -->
+    <div id="map"></div>
+
+    <!-- Footer -->
+    <footer>
+        &copy; 2025 ระบบช่วยเหลือผู้ป่วย | <a href="#">Learn More</a>
+    </footer>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <!-- Custom JS -->
+    <script src="./script.js"></script>
+    <script>
+        // พิกัดที่ได้จาก Python/Flask (ส่งไปใน Template)
+        const userLat = {{ user.location.latitude }};
+        const userLng = {{ user.location.longitude }};
+
+        // สร้างแผนที่
+        var map = L.map('map').setView([userLat, userLng], 13);
+
+        // เชื่อมต่อแผนที่ OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // สร้าง Marker สำหรับผู้ใช้
+        var marker = L.marker([userLat, userLng]).addTo(map);
+        marker.bindPopup("<b>ตำแหน่งของผู้ใช้:</b><br>{{ user.name }}<br>{{ user.relative_phone }}").openPopup();
+    </script>
+</body>
+</html>

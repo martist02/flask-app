@@ -1,0 +1,61 @@
+/* กำหนดพื้นฐานของ body */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+/* ส่วนของ header */
+header {
+    background-color: #6a4c9c;
+    color: white;
+    padding: 20px;
+    text-align: center;
+}
+
+/* ปรับแต่งลิงค์ */
+a {
+    color: #9b7bd7;
+    text-decoration: none;
+}
+
+a:hover {
+    color: #6a4c9c;
+    text-decoration: underline;
+}
+
+/* ส่วนของเนื้อหาหลัก */
+.main-content {
+    background-color: white;
+    border-radius: 8px;
+    margin: 20px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* footer */
+footer {
+    background-color: #6a4c9c;
+    color: white;
+    text-align: center;
+    padding: 10px;
+    position: fixed;
+    width: 100%;
+    bottom: 0;
+}
+
+/* ปรับสไตล์ปุ่ม */
+button {
+    background-color: #9b7bd7;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #6a4c9c;
+}
