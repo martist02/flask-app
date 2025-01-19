@@ -1,5 +1,6 @@
 {pkgs}: {
   deps = [
+    pkgs.iana-etc
     pkgs.lsof
     pkgs.cacert
     pkgs.zlib

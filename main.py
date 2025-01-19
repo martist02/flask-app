@@ -7,7 +7,7 @@ import json
 from twilio.rest import Client
 
 app = Flask(__name__)
-socketio = SocketIO(app)
+socketio = SocketIO(app, engineio_logger=True)  # ใช้ logger สำหรับดู logs ของ socket
 
 # Configuration
 app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET_KEY', 'default_secret_key')
@@ -15,9 +15,9 @@ app.config['UPLOAD_FOLDER'] = 'static/uploads'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB Limit
 
 # Twilio Configuration
-TWILIO_ACCOUNT_SID = 'your_twilio_account_sid'
-TWILIO_AUTH_TOKEN = 'your_twilio_auth_token'
-TWILIO_PHONE_NUMBER = 'your_twilio_phone_number'
+TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID')
+TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN')
+TWILIO_PHONE_NUMBER = os.environ.get('TWILIO_PHONE_NUMBER')
 
 # Login manager setup
 login_manager = LoginManager()
@@ -166,4 +166,11 @@ def logout():
     return redirect(url_for('register_and_login'))
 
 if __name__ == "__main__":
-    socketio.run(app, debug=True, host='0.0.0.0', port=int(os.environ.get("PORT", 3000)))
+        # ใช้ Eventlet
+        import eventlet
+        eventlet.monkey_patch()  # Monkey patch เพื่อรองรับ WebSocket
+        from eventlet import wsgi
+        wsgi.server(eventlet.listen(('0.0.0.0', int(os.environ.get("PORT", 3000)))), app)
+
+
+
