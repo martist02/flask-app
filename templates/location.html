@@ -1,94 +1,43 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Location</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-        }
-        h1 {
-            text-align: center;
-        }
-        #map {
-            height: 400px;
-            width: 100%;
-            margin-top: 20px;
-        }
-    </style>
-</head>
-<body>
+<!-- templates/location.html -->
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>สวัสดี, {{ user.name }}</h2>
+                <a href="{{ url_for('logout') }}" class="btn btn-outline-danger">ออกจากระบบ</a>
+            </div>
 
-<h1>Welcome {{ user.name }}</h1>
+            {% if user.profile_picture %}
+            <div class="text-center mb-4">
+                <img src="{{ url_for('static', filename=user.profile_picture) }}" 
+                     alt="Profile Picture" 
+                     class="rounded-circle" 
+                     style="max-width: 150px;">
+            </div>
+            {% endif %}
+            {% endblock %}
 
-<div>
-    <img class="profile" src="{{ user.profile_picture or url_for('static', filename='default-profile.jpg') }}" alt="Profile Picture">
+            <div id="map" style="height: 400px;" class="mb-4"></div>
 
-    <div class="qr-code-container">
-        <h2>QR Code:</h2>
-        <img src="data:image/png;base64,{{ qr_code_img }}" alt="QR Code">
-    <p><strong>Relative Name:</strong> {{ user.relative_name }}</p>
-    <p><strong>Relative Phone:</strong> {{ user.relative_phone }}</p>
-    <p><strong>Medical Condition:</strong> {{ user.medical_condition }}</p>
+            <div class="mb-4">
+                <h4>ข้อมูลการแจ้งเตือน</h4>
+                <p>เบอร์โทรญาติ: {{ user.relative_phone }}</p>
+                {% if user.medical_condition %}
+                <p>โรคประจำตัว: {{ user.medical_condition }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
 </div>
 
-<div id="map"></div>
-
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY"></script>
 <script>
-    var userLocation = [{{ user.location.latitude }}, {{ user.location.longitude }}];
+    const socket = io();
+    let map;
+    let marker;
 
-    // Initialize the map
-    var map = L.map('map').setView(userLocation, 15);
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
-
-    // Create a marker for the user's initial location
-    var marker = L.marker(userLocation).addTo(map)
-        .bindPopup("<b>Your Location</b>")
-        .openPopup();
-
-    map.locate({ setView: true, maxZoom: 16 });
-
-    // Retrieve the token from localStorage (if you're using JWT for authentication)
-    var token = localStorage.getItem('auth_token');  // Ensure token is set after login
-
-    if (token) {
-        // Real-time location update using Geolocation API
-        navigator.geolocation.watchPosition(function (position) {
-            var latitude = position.coords.latitude;
-            var longitude = position.coords.longitude;
-
-            // Send location data to the server
-            fetch('/update_location', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + token  // Pass token from localStorage
-                },
-                body: JSON.stringify({
-                    latitude: latitude,
-                    longitude: longitude
-                })
-            })
-            .then(response => response.json())
-            .then(data => console.log(data))
-            .catch(error => console.error('Error:', error));
-
-            // Update the user's location on the map with new coordinates
-            marker.setLatLng([latitude, longitude]);
-            map.setView([latitude, longitude], 16);
-        });
-    } else {
-        console.log('Token not found');
-    }
-</script>
-
-</body>
-</html>
+    function initMap() {
+        map = new google.maps.Map(document.getElementById('

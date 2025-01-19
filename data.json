@@ -2,57 +2,14 @@
     {
         "id": "1",
         "name": "เอมมิกา จันทร์คช",
-        "email": "AIMMIKAJUNKOTCH@gmail.com",
-        "password": "02130213",
-        "relative_name": "นายเอ บีซี",
-        "relative_phone": "055-155-5555",
-        "medical_condition": "อัลไซเมอร์",
-        "profile_picture": "e1932b17230973be94aea6b52e7eef9a.jpg",
-        "location": {
-            "latitude": 13.7396224,
-            "longitude": 100.2274816
-        }
-    },
-    {
-        "id": "2",
-        "name": "พิชชาพร ทิพากร",
-        "email": "Aiii@gmail.com",
-        "password": "55555555",
-        "relative_name": "เอมมิกา จันทร์คช",
-        "relative_phone": "055-155-5577",
-        "medical_condition": "-",
-        "location": {
-            "latitude": 13.7563,
-            "longitude": 100.5018
-        },
-        "profile_picture": "anime-girl1.jpg"
-    },
-    {
-        "id": "3",
-        "name": "พิชชาพร ทิพากร",
-        "email": "pichapornti12@gmail.com",
-        "password": "333",
-        "relative_name": "พฤกษา บัวผัน",
-        "relative_phone": "0837525299",
-        "medical_condition": "hyper ",
-        "location": {
-            "latitude": 13.7563,
-            "longitude": 100.5018
-        },
-        "profile_picture": "IMG_2974.jpeg"
-    },
-    {
-        "id": "4",
-        "name": "เอมมิกา จันทร์คช",
         "email": "Aimmikas1pro@gmail.com",
         "password": "moomee0213",
-        "relative_name": "แม่",
         "relative_phone": "0625076678",
-        "medical_condition": "",
+        "medical_condition": "ชรา",
         "location": {
-            "latitude": 13.7563,
-            "longitude": 100.5018
+            "latitude": null,
+            "longitude": null
         },
-        "profile_picture": "anime-girl-angel.jpg"
+        "profile_picture": "uploads/Aimmikas1progmail.com_anime-girl-angel.jpg"
     }
 ]

@@ -1,0 +1,582 @@
+// package.json
+{
+  "name": "wristband-finder",
+  "version": "1.0.0",
+  "dependencies": {
+    "express": "^4.17.1",
+    "qrcode": "^1.4.4",
+    "socket.io": "^4.5.1",
+    "body-parser": "^1.19.0"
+  }
+}
+
+// server.js
+const express = require('express');
+const http = require('http');
+const socketIO = require('socket.io');
+const QRCode = require('qrcode');
+const path = require('path');
+
+const app = express();
+const server = http.createServer(app);
+const io = socketIO(server);
+
+// Middleware
+app.use(express.static('public'));
+app.use(express.json());
+
+// Store connected relatives (ในระบบจริงควรใช้ฐานข้อมูล)
+const relativeConnections = new Map();
+
+// Socket.IO connection
+io.on('connection', (socket) => {
+    socket.on('register-relative', (userId) => {
+        relativeConnections.set(userId, socket.id);
+    });
+
+    socket.on('location-update', (data) => {
+        const relativeSocket = relativeConnections.get(data.userId);
+        if (relativeSocket) {
+            io.to(relativeSocket).emit('location-update', {
+                latitude: data.latitude,
+                longitude: data.longitude,
+                timestamp: new Date()
+            });
+        }
+    });
+});
+
+// Routes
+app.get('/generate-qr/:userId', async (req, res) => {
+    const userId = req.params.userId;
+    const trackingUrl = `${req.protocol}://${req.get('host')}/track/${userId}`;
+
+    try {
+        const qrCodeDataUrl = await QRCode.toDataURL(trackingUrl);
+        res.json({ qrCode: qrCodeDataUrl });
+    } catch (error) {
+        res.status(500).json({ error: 'ไม่สามารถสร้าง QR Code ได้' });
+    }
+});
+
+app.post('/update-location', (req, res) => {
+    const { userId, latitude, longitude } = req.body;
+    // ส่งตำแหน่งผ่าน Socket.IO ไปยังญาติ
+    io.emit('location-update', { userId, latitude, longitude });
+    res.json({ success: true });
+});
+
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
+
+// location.html
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบติดตามตำแหน่ง</title>
+    <style>
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            text-align: center;
+        }
+        .profile-image {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            margin: 20px 0;
+        }
+        .qr-container {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+        }
+        .status-message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 id="welcomeMessage">สวัสดี, เอมมิกา จันทรัตน์</h2>
+        <img src="/profile-picture.jpg" alt="Profile" class="profile-image">
+
+        <div class="qr-container">
+            <h3>QR Code สำหรับติดตามตำแหน่ง</h3>
+            <div id="qrcode"></div>
+            <p>สแกนเพื่อส่งตำแหน่งปัจจุบันไปยังญาติ</p>
+        </div>
+
+        <div id="statusMessage" class="status-message"></div>
+        <button onclick="logout()" class="btn-logout">ออกจากระบบ</button>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const userId = 'USER_ID'; // ควรได้จากระบบ authentication
+
+        // โหลด QR Code เมื่อเปิดหน้าเว็บ
+        fetch(`/generate-qr/${userId}`)
+            .then(response => response.json())
+            .then(data => {
+                const qrContainer = document.getElementById('qrcode');
+                const img = document.createElement('img');
+                img.src = data.qrCode;
+                qrContainer.appendChild(img);
+            })
+            .catch(error => {
+                showStatus('ไม่สามารถโหลด QR Code ได้', false);
+            });
+
+        function showStatus(message, isSuccess) {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.textContent = message;
+            statusDiv.className = `status-message ${isSuccess ? 'success' : 'error'}`;
+        }
+
+        function logout() {
+            // Implement logout logic
+            window.location.href = '/login';
+        }
+    </script>
+</body>
+</html>
+
+// track.js (สำหรับหน้าที่เปิดหลังสแกน QR)
+const userId = new URLSearchParams(window.location.search).get('userId');
+const socket = io();
+
+function sendLocation() {
+    if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(position => {
+            const { latitude, longitude } = position.coords;
+
+            fetch('/update-location', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    userId,
+                    latitude,
+                    longitude
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                showStatus('ส่งตำแหน่งสำเร็จ', true);
+            })
+            .catch(error => {
+                showStatus('ไม่สามารถส่งตำแหน่งได้', false);
+            });
+        }, error => {
+            showStatus('ไม่สามารถรับตำแหน่งได้', false);
+        });
+    } else {
+        showStatus('เบราว์เซอร์ไม่รองรับการระบุตำแหน่ง', false);
+    }
+}// package.json
+{
+  "name": "wristband-finder",
+  "version": "1.0.0",
+  "dependencies": {
+    "express": "^4.17.1",
+    "qrcode": "^1.4.4",
+    "socket.io": "^4.5.1",
+    "body-parser": "^1.19.0"
+  }
+}
+
+// server.js
+const express = require('express');
+const http = require('http');
+const socketIO = require('socket.io');
+const QRCode = require('qrcode');
+const path = require('path');
+
+const app = express();
+const server = http.createServer(app);
+const io = socketIO(server);
+
+// Middleware
+app.use(express.static('public'));
+app.use(express.json());
+
+// Store connected relatives (ในระบบจริงควรใช้ฐานข้อมูล)
+const relativeConnections = new Map();
+
+// Socket.IO connection
+io.on('connection', (socket) => {
+    socket.on('register-relative', (userId) => {
+        relativeConnections.set(userId, socket.id);
+    });
+
+    socket.on('location-update', (data) => {
+        const relativeSocket = relativeConnections.get(data.userId);
+        if (relativeSocket) {
+            io.to(relativeSocket).emit('location-update', {
+                latitude: data.latitude,
+                longitude: data.longitude,
+                timestamp: new Date()
+            });
+        }
+    });
+});
+
+// Routes
+app.get('/generate-qr/:userId', async (req, res) => {
+    const userId = req.params.userId;
+    const trackingUrl = `${req.protocol}://${req.get('host')}/track/${userId}`;
+
+    try {
+        const qrCodeDataUrl = await QRCode.toDataURL(trackingUrl);
+        res.json({ qrCode: qrCodeDataUrl });
+    } catch (error) {
+        res.status(500).json({ error: 'ไม่สามารถสร้าง QR Code ได้' });
+    }
+});
+
+app.post('/update-location', (req, res) => {
+    const { userId, latitude, longitude } = req.body;
+    // ส่งตำแหน่งผ่าน Socket.IO ไปยังญาติ
+    io.emit('location-update', { userId, latitude, longitude });
+    res.json({ success: true });
+});
+
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
+
+// location.html
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบติดตามตำแหน่ง</title>
+    <style>
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            text-align: center;
+        }
+        .profile-image {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            margin: 20px 0;
+        }
+        .qr-container {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+        }
+        .status-message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 id="welcomeMessage">สวัสดี, เอมมิกา จันทรัตน์</h2>
+        <img src="/profile-picture.jpg" alt="Profile" class="profile-image">
+
+        <div class="qr-container">
+            <h3>QR Code สำหรับติดตามตำแหน่ง</h3>
+            <div id="qrcode"></div>
+            <p>สแกนเพื่อส่งตำแหน่งปัจจุบันไปยังญาติ</p>
+        </div>
+
+        <div id="statusMessage" class="status-message"></div>
+        <button onclick="logout()" class="btn-logout">ออกจากระบบ</button>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const userId = 'USER_ID'; // ควรได้จากระบบ authentication
+
+        // โหลด QR Code เมื่อเปิดหน้าเว็บ
+        fetch(`/generate-qr/${userId}`)
+            .then(response => response.json())
+            .then(data => {
+                const qrContainer = document.getElementById('qrcode');
+                const img = document.createElement('img');
+                img.src = data.qrCode;
+                qrContainer.appendChild(img);
+            })
+            .catch(error => {
+                showStatus('ไม่สามารถโหลด QR Code ได้', false);
+            });
+
+        function showStatus(message, isSuccess) {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.textContent = message;
+            statusDiv.className = `status-message ${isSuccess ? 'success' : 'error'}`;
+        }
+
+        function logout() {
+            // Implement logout logic
+            window.location.href = '/login';
+        }
+    </script>
+</body>
+</html>
+
+// track.js (สำหรับหน้าที่เปิดหลังสแกน QR)
+const userId = new URLSearchParams(window.location.search).get('userId');
+const socket = io();
+
+function sendLocation() {
+    if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(position => {
+            const { latitude, longitude } = position.coords;
+
+            fetch('/update-location', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    userId,
+                    latitude,
+                    longitude
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                showStatus('ส่งตำแหน่งสำเร็จ', true);
+            })
+            .catch(error => {
+                showStatus('ไม่สามารถส่งตำแหน่งได้', false);
+            });
+        }, error => {
+            showStatus('ไม่สามารถรับตำแหน่งได้', false);
+        });
+    } else {
+        showStatus('เบราว์เซอร์ไม่รองรับการระบุตำแหน่ง', false);
+    }
+}// package.json
+{
+  "name": "wristband-finder",
+  "version": "1.0.0",
+  "dependencies": {
+    "express": "^4.17.1",
+    "qrcode": "^1.4.4",
+    "socket.io": "^4.5.1",
+    "body-parser": "^1.19.0"
+  }
+}
+
+// server.js
+const express = require('express');
+const http = require('http');
+const socketIO = require('socket.io');
+const QRCode = require('qrcode');
+const path = require('path');
+
+const app = express();
+const server = http.createServer(app);
+const io = socketIO(server);
+
+// Middleware
+app.use(express.static('public'));
+app.use(express.json());
+
+// Store connected relatives (ในระบบจริงควรใช้ฐานข้อมูล)
+const relativeConnections = new Map();
+
+// Socket.IO connection
+io.on('connection', (socket) => {
+    socket.on('register-relative', (userId) => {
+        relativeConnections.set(userId, socket.id);
+    });
+
+    socket.on('location-update', (data) => {
+        const relativeSocket = relativeConnections.get(data.userId);
+        if (relativeSocket) {
+            io.to(relativeSocket).emit('location-update', {
+                latitude: data.latitude,
+                longitude: data.longitude,
+                timestamp: new Date()
+            });
+        }
+    });
+});
+
+// Routes
+app.get('/generate-qr/:userId', async (req, res) => {
+    const userId = req.params.userId;
+    const trackingUrl = `${req.protocol}://${req.get('host')}/track/${userId}`;
+
+    try {
+        const qrCodeDataUrl = await QRCode.toDataURL(trackingUrl);
+        res.json({ qrCode: qrCodeDataUrl });
+    } catch (error) {
+        res.status(500).json({ error: 'ไม่สามารถสร้าง QR Code ได้' });
+    }
+});
+
+app.post('/update-location', (req, res) => {
+    const { userId, latitude, longitude } = req.body;
+    // ส่งตำแหน่งผ่าน Socket.IO ไปยังญาติ
+    io.emit('location-update', { userId, latitude, longitude });
+    res.json({ success: true });
+});
+
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
+
+// location.html
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบติดตามตำแหน่ง</title>
+    <style>
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            text-align: center;
+        }
+        .profile-image {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            margin: 20px 0;
+        }
+        .qr-container {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+        }
+        .status-message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 id="welcomeMessage">สวัสดี, เอมมิกา จันทรัตน์</h2>
+        <img src="/profile-picture.jpg" alt="Profile" class="profile-image">
+
+        <div class="qr-container">
+            <h3>QR Code สำหรับติดตามตำแหน่ง</h3>
+            <div id="qrcode"></div>
+            <p>สแกนเพื่อส่งตำแหน่งปัจจุบันไปยังญาติ</p>
+        </div>
+
+        <div id="statusMessage" class="status-message"></div>
+        <button onclick="logout()" class="btn-logout">ออกจากระบบ</button>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const userId = 'USER_ID'; // ควรได้จากระบบ authentication
+
+        // โหลด QR Code เมื่อเปิดหน้าเว็บ
+        fetch(`/generate-qr/${userId}`)
+            .then(response => response.json())
+            .then(data => {
+                const qrContainer = document.getElementById('qrcode');
+                const img = document.createElement('img');
+                img.src = data.qrCode;
+                qrContainer.appendChild(img);
+            })
+            .catch(error => {
+                showStatus('ไม่สามารถโหลด QR Code ได้', false);
+            });
+
+        function showStatus(message, isSuccess) {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.textContent = message;
+            statusDiv.className = `status-message ${isSuccess ? 'success' : 'error'}`;
+        }
+
+        function logout() {
+            // Implement logout logic
+            window.location.href = '/login';
+        }
+    </script>
+</body>
+</html>
+
+// track.js (สำหรับหน้าที่เปิดหลังสแกน QR)
+const userId = new URLSearchParams(window.location.search).get('userId');
+const socket = io();
+
+function sendLocation() {
+    if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(position => {
+            const { latitude, longitude } = position.coords;
+
+            fetch('/update-location', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    userId,
+                    latitude,
+                    longitude
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                showStatus('ส่งตำแหน่งสำเร็จ', true);
+            })
+            .catch(error => {
+                showStatus('ไม่สามารถส่งตำแหน่งได้', false);
+            });
+        }, error => {
+            showStatus('ไม่สามารถรับตำแหน่งได้', false);
+        });
+    } else {
+        showStatus('เบราว์เซอร์ไม่รองรับการระบุตำแหน่ง', false);
+    }

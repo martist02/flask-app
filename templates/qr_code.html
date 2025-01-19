@@ -30,6 +30,12 @@
             width: 200px;
             height: 200px;
         }
+        .status {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 1.2em;
+            color: green;
+        }
     </style>
 </head>
 <body>
@@ -49,5 +55,62 @@
         <img src="data:image/png;base64,{{ qr_code_img }}" alt="QR Code">
     </div>
 
+    <div class="status" id="status">Attempting to get your location...</div>
+
+    <script>
+        // Function to get user's geolocation and send it to the server
+        function sendLocation() {
+            const status = document.getElementById('status');
+            
+            // Check if browser supports geolocation
+            if (navigator.geolocation) {
+                // Request geolocation
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const latitude = position.coords.latitude;
+                        const longitude = position.coords.longitude;
+                        
+                        // Log the location
+                        console.log("Location obtained:", latitude, longitude);
+                        
+                        // Update UI
+                        status.innerHTML = `Your location: Latitude=${latitude}, Longitude=${longitude}`;
+
+                        // Send data to the server (Update with your actual endpoint URL)
+                        fetch('https://your-backend-url.com/api/track-location', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                userId: "{{ user.id }}", // Pass user ID dynamically
+                                latitude: latitude,
+                                longitude: longitude,
+                            }),
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log("Location sent to server:", data);
+                        })
+                        .catch(error => {
+                            console.error("Error sending location:", error);
+                            status.innerHTML = "Error sending location to server.";
+                        });
+                    },
+                    (error) => {
+                        console.error("Error obtaining geolocation:", error);
+                        status.innerHTML = "Failed to obtain your location.";
+                    }
+                );
+            } else {
+                // Geolocation not supported
+                status.innerHTML = "Geolocation is not supported by your browser.";
+                console.error("Geolocation not supported.");
+            }
+        }
+
+        // Trigger the function on page load
+        window.onload = sendLocation;
+    </script>
 </body>
 </html>
